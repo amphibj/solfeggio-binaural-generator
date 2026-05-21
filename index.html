@@ -399,33 +399,7 @@
             <p>The Nine Sacred Solfeggio Frequencies with Pure Tone Binaural Technology</p>
         </header>
 
-        <div class="controls-info">
-            <h3 style="color:#e0e0e0;margin-bottom:10px;font-size:1.1em">🧘 The Nine Sacred Frequencies</h3>
-            <p style="color:#888">Ancient musical tones used for healing, transformation, and spiritual awakening. Each frequency resonates with different aspects of your being.</p>
-        </div>
-
-        <div class="pure-tone-section" style="margin:20px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px">
-            <h3 style="margin:0 0 10px 0;color:#e0e0e0">🎵 Pure Tone Generator</h3>
-            <p style="color:#888;margin:0 0 15px 0;font-size:0.9em">Single-tone generator. Both ears hear the same frequency.</p>
-            
-            <div id="toneControls">
-                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                    <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:80px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
-                    <select id="pureToneWaveform" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
-                        <option value="sine">Sine</option>
-                        <option value="square">Square</option>
-                        <option value="sawtooth">Sawtooth</option>
-                        <option value="triangle">Triangle</option>
-                    </select>
-                    <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:100px">▶️ Play</button>
-                </div>
-            </div>
-            
-            <button class="global-btn" onclick="testAudio()" style="margin-top:10px;background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.5)">🔊 Test Audio (Click First)</button>
-            <p id="audioStatus" style="color:#888;margin-top:10px;font-size:0.85em"></p>
-        </div>
-
-        <div class="controls">
+        <div class="controls" style="margin:20px 0">
             <div class="control-group">
                 <label>Master Volume</label>
                 <div class="slider-container">
@@ -433,7 +407,14 @@
                     <span class="value-display" id="volumeValue">50%</span>
                 </div>
             </div>
+        </div>
 
+        <div class="controls-info">
+            <h3 style="color:#e0e0e0;margin-bottom:10px;font-size:1.1em">🧘 The Nine Sacred Frequencies</h3>
+            <p style="color:#888">Ancient musical tones used for healing, transformation, and spiritual awakening. Each frequency resonates with different aspects of your being.</p>
+        </div>
+
+        <div class="controls">
             <div class="control-group">
                 <label>Session Timer</label>
                 <select id="timer">
@@ -497,6 +478,25 @@
                 <div class="chakra-color" style="background: #ffffff;"></div>
                 <span><strong>963 Hz</strong> - Divine / Raise Consciousness</span>
             </div>
+        </div>
+
+        <div class="pure-tone-section" style="margin:20px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px">
+            <h3 style="margin:0 0 10px 0;color:#e0e0e0">🎵 Pure Tone Generator</h3>
+            <p style="color:#888;margin:0 0 15px 0;font-size:0.9em">Simple single-tone generator. Both ears hear the same frequency.</p>
+            
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px">
+                <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:100px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
+                <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:100px">▶️ Play</button>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0">
+                <button class="global-btn waveform-btn" onclick="setWaveform('sine')" data-waveform="sine" style="background:rgba(255,255,255,0.1)">Sine</button>
+                <button class="global-btn waveform-btn" onclick="setWaveform('square')" data-waveform="square" style="background:rgba(255,255,255,0.1)">Square</button>
+                <button class="global-btn waveform-btn" onclick="setWaveform('sawtooth')" data-waveform="sawtooth" style="background:rgba(255,255,255,0.1)">Sawtooth</button>
+                <button class="global-btn waveform-btn" onclick="setWaveform('triangle')" data-waveform="triangle" style="background:rgba(255,255,255,0.1)">Triangle</button>
+            </div>
+            
+            <p id="audioStatus" style="color:#888;margin-top:10px;font-size:0.85em"></p>
         </div>
 
         <footer>
@@ -966,6 +966,26 @@
         // Pure tone player
         let pureToneOsc = null;
         let pureToneGain = null;
+        let currentWaveform = 'sine';
+        
+        function setWaveform(waveform) {
+            currentWaveform = waveform;
+            
+            // Update button styles
+            document.querySelectorAll('.waveform-btn').forEach(btn => {
+                if (btn.dataset.waveform === waveform) {
+                    btn.style.background = 'rgba(46, 204, 113, 0.3)';
+                    btn.style.borderColor = 'rgba(46, 204, 113, 0.5)';
+                } else {
+                    btn.style.background = 'rgba(255,255,255,0.1)';
+                    btn.style.borderColor = 'rgba(255,255,255,0.1)';
+                }
+            });
+            
+            const status = document.getElementById('audioStatus');
+            status.textContent = 'Selected: ' + waveform + ' wave';
+            status.style.color = '#888';
+        }
         
         function togglePureTone() {
             const btn = document.getElementById('pureToneBtn');
@@ -1001,14 +1021,10 @@
             
             function playTone() {
                 const freq = parseInt(freqInput.value) || 528;
-                const waveformSelect = document.getElementById('pureToneWaveform');
-                const waveform = waveformSelect ? waveformSelect.value : 'sine';
                 const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
                 
-                console.log('Selected waveform:', waveform);
-                
                 pureToneOsc = audioContext.createOscillator();
-                pureToneOsc.type = waveform;
+                pureToneOsc.type = currentWaveform;
                 pureToneOsc.frequency.value = freq;
                 
                 pureToneGain = audioContext.createGain();
@@ -1020,7 +1036,7 @@
                 pureToneOsc.start();
                 btn.innerHTML = '⏹️ Stop';
                 btn.style.background = 'rgba(231, 76, 60, 0.3)';
-                status.textContent = 'Playing ' + freq + 'Hz ' + waveform + ' wave';
+                status.textContent = 'Playing ' + freq + 'Hz ' + currentWaveform + ' wave';
                 status.style.color = '#2ecc71';
             }
         }
@@ -1109,6 +1125,9 @@
 
         // Initialize
         generateCards();
+        
+        // Set default waveform button style
+        setWaveform('sine');
 
         // Handle page visibility - DON'T suspend, keep playing in background
         // This allows audio to continue when switching tabs or minimizing
