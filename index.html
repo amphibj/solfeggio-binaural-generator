@@ -488,8 +488,14 @@
         <div class="pure-tone-section">
             <h3>🎵 Pure Tone Generator</h3>
             <p style="color:#888;margin-bottom:15px">Simple single-tone generator. Both ears hear the same frequency.</p>
-            <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
+            <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap;margin-bottom:15px">
                 <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:100px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
+                <select id="pureToneWaveform" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
+                    <option value="sine">Sine</option>
+                    <option value="square">Square</option>
+                    <option value="sawtooth">Sawtooth</option>
+                    <option value="triangle">Triangle</option>
+                </select>
                 <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:120px">▶️ Play Tone</button>
             </div>
         </div>
@@ -979,10 +985,11 @@
                 // Play
                 initAudioContext();
                 const freq = parseInt(freqInput.value) || 528;
+                const waveform = document.getElementById('pureToneWaveform').value || 'sine';
                 const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
                 
                 pureToneOsc = audioContext.createOscillator();
-                pureToneOsc.type = 'sine';
+                pureToneOsc.type = waveform;
                 pureToneOsc.frequency.value = freq;
                 
                 pureToneGain = audioContext.createGain();
