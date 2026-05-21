@@ -416,15 +416,7 @@
                 <label>Custom Frequency (Hz) - Optional</label>
                 <div style="display:flex;gap:10px">
                     <input type="number" id="customFreq" placeholder="Enter Hz (e.g., 111)" min="1" max="2000" style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
-                    <button class="global-btn" onclick="playCustomFrequency()" style="flex:0 0 auto;min-width:100px">Play Custom</button>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label>Custom Frequency (Hz) - Optional</label>
-                <div style="display:flex;gap:10px">
-                    <input type="number" id="customFreq" placeholder="Enter Hz" min="1" max="2000" style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
-                    <button class="global-btn" onclick="playCustomFrequency()" style="flex:0 0 auto;min-width:100px">Play Custom</button>
+                    <button class="global-btn" onclick="toggleCustomFrequency()" style="flex:0 0 auto;min-width:100px" id="customPlayBtn">Play Custom</button>
                 </div>
             </div>
 
@@ -860,9 +852,34 @@
 
         // Timer functions
         
+        // Custom frequency state tracking
+        let customFreqPlaying = false;
+        
         // Play custom frequency
-        function playCustomFrequency() {
+        function toggleCustomFrequency() {
+            const btn = document.getElementById('customPlayBtn');
             const customHz = parseInt(document.getElementById('customFreq').value);
+            
+            if (customFreqPlaying) {
+                // Stop custom frequency
+                if (activeOscillators['custom']) {
+                    const gains = activeGainNodes['custom'];
+                    const oscs = activeOscillators['custom'];
+                    try {
+                        oscs.left.stop();
+                        oscs.right.stop();
+                        oscs.left.disconnect();
+                        oscs.right.disconnect();
+                    } catch (e) {}
+                    delete activeOscillators['custom'];
+                    delete activeGainNodes['custom'];
+                }
+                customFreqPlaying = false;
+                btn.innerHTML = 'Play Custom';
+                btn.style.background = '';
+                return;
+            }
+            
             if (!customHz || customHz < 1 || customHz > 2000) {
                 alert('Please enter a valid frequency between 1-2000 Hz');
                 return;
@@ -904,6 +921,10 @@
             // Store with special index 'custom'
             activeOscillators['custom'] = { left: oscLeft, right: oscRight };
             activeGainNodes['custom'] = { left: gainLeft, right: gainRight };
+            
+            customFreqPlaying = true;
+            btn.innerHTML = 'Stop Custom';
+            btn.style.background = 'rgba(231, 76, 60, 0.3)';
             
             console.log('Playing custom frequency:', customHz, 'Hz');
         }
