@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦝 Natasha's Solfeggio Binaural Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, #f39c12, #e74c3c, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .warning {
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.2), rgba(243, 156, 18, 0.2));
+            border: 1px solid rgba(243, 156, 18, 0.5);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .warning strong {
+            color: #f39c12;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b0b0b0;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #2c3e50;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .value-display {
+            min-width: 60px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #1a1a2e;
+            color: #e0e0e0;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .frequencies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .freq-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .freq-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--color-1), var(--color-2));
+        }
+
+        .freq-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .freq-card.active {
+            border-color: var(--color-1);
+            box-shadow: 0 0 30px var(--glow-color);
+        }
+
+        .freq-number {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--color-1), var(--color-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .freq-hz {
+            color: #888;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .freq-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .freq-description {
+            color: #888;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .play-btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--color-1), var(--color-2));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 20px var(--glow-color);
+        }
+
+        .play-btn.playing {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .play-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .visualizer {
+            height: 60px;
+            margin-top: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+        }
+
+        .freq-card.active .visualizer {
+            display: block;
+        }
+
+        .visualizer canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .global-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .global-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .global-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .chakras-ref {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .chakras-ref h3 {
+            margin-bottom: 15px;
+            color: #b0b0b0;
+        }
+
+        .chakra-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chakra-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .freq-number {
+                font-size: 2.5rem;
+            }
+            
+            .frequencies-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .timer-display {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-top: 15px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🦝 Natasha's Solfeggio Binaural Generator</h1>
+            <p>The Nine Sacred Solfeggio Frequencies with Pure Tone Binaural Technology</p>
+        </header>
+
+        <div class="warning">
+            <strong>⚠️ Use Stereo Headphones Required</strong><br>
+            Binaural beats require separate frequencies in each ear. Start at low volume. Not for those with epilepsy or seizure disorders. Not medical advice.
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Master Volume</label>
+                <div class="slider-container">
+                    <input type="range" id="masterVolume" min="0" max="50" value="20">
+                    <span class="value-display" id="volumeValue">20%</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Carrier Frequency Base (Hz)</label>
+                <div class="slider-container">
+                    <input type="range" id="carrierFreq" min="100" max="800" value="432">
+                    <span class="value-display" id="carrierValue">432</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Session Timer</label>
+                <select id="timer">
+                    <option value="0">No Timer</option>
+                    <option value="5">5 minutes</option>
+                    <option value="10">10 minutes</option>
+                    <option value="15" selected>15 minutes</option>
+                    <option value="20">20 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">60 minutes</option>
+                </select>
+            </div>
+
+            <div class="timer-display" id="timerDisplay" style="display: none;">00:00</div>
+
+            <div class="global-controls">
+                <button class="global-btn" onclick="stopAll()">⏹️ Stop All</button>
+                <button class="global-btn" onclick="fadeMasterVolume(0)">🔉 Fade Out</button>
+            </div>
+        </div>
+
+        <div class="frequencies-grid" id="frequenciesGrid">
+            <!-- Frequency cards will be generated by JavaScript -->
+        </div>
+
+        <div class="chakras-ref">
+            <h3>🧘 Frequency Correspondences</h3>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #ff0000;"></div>
+                <span><strong>174 Hz</strong> - Root Chakra / Pain Relief</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #ff7f00;"></div>
+                <span><strong>285 Hz</strong> - Sacral / Tissue Healing</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #ffff00;"></div>
+                <span><strong>396 Hz</strong> - Solar Plexus / Guilt/Fear Release</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #00ff00;"></div>
+                <span><strong>417 Hz</strong> - Heart / Removes Negative Energy</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #00ffff;"></div>
+                <span><strong>528 Hz</strong> - Throat / DNA Repair (Miracle)</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #0000ff;"></div>
+                <span><strong>639 Hz</strong> - Third Eye / Love & Relationships</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #8b00ff;"></div>
+                <span><strong>741 Hz</strong> - Crown / Detoxification</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #ff00ff;"></div>
+                <span><strong>852 Hz</strong> - Higher Crown / Cell Transformation</span>
+            </div>
+            <div class="chakra-item">
+                <div class="chakra-color" style="background: #ffffff;"></div>
+                <span><strong>963 Hz</strong> - Divine / Raise Consciousness</span>
+            </div>
+        </div>
+
+        <footer>
+            <p>🦝 Built by Natasha | Based on scientific research on brainwave entrainment</p>
+            <p>Use headphones • Start low • Be safe</p>
+        </footer>
+    </div>
+
+    <script>
+        // Solfeggio Frequencies Data
+        const solfeggioFrequencies = [
+            { 
+                hz: 174, 
+                name: "Pain Relief", 
+                desc: "Natural anesthetic. Helps relieve physical pain and relaxes tissues. Associated with security and grounding.",
+                colors: ["#ff4444", "#ff6b6b"]
+            },
+            { 
+                hz: 285, 
+                name: "Tissue Healing", 
+                desc: "Influences energy fields and promotes healing of tissues and organs. Rejuvenates and regenerates.",
+                colors: ["#ff8c00", "#ffa500"]
+            },
+            { 
+                hz: 396, 
+                name: "Releases Guilt & Fear", 
+                desc: "Turns grief into joy, liberates from guilt and fear. First frequency of the original Solfeggio scale.",
+                colors: ["#ffd700", "#ffeb3b"]
+            },
+            { 
+                hz: 417, 
+                name: "Removes Negative Energy", 
+                desc: "Facilitates change, removes negative energy from body and environment. Breaks up crystallized trauma.",
+                colors: ["#32cd32", "#4caf50"]
+            },
+            { 
+                hz: 528, 
+                name: "DNA Repair", 
+                desc: "The 'Miracle' frequency. Associated with transformation, DNA repair, and miracles. Central to all healing.",
+                colors: ["#00bcd4", "#00acc1"]
+            },
+            { 
+                hz: 639, 
+                name: "Love & Relationships", 
+                desc: "Enhances communication, understanding, tolerance, and love. Heals relationships and connects hearts.",
+                colors: ["#3f51b5", "#5c6bc0"]
+            },
+            { 
+                hz: 741, 
+                name: "Removes Toxins", 
+                desc: "Cleanses cells of toxins and electromagnetic radiation. Leads to spiritual awakening and intuition.",
+                colors: ["#9c27b0", "#ab47bc"]
+            },
+            { 
+                hz: 852, 
+                name: "Cell Transformation", 
+                desc: "Awakens intuition, inner strength, and raises energy. Returns cells to their natural order.",
+                colors: ["#e91e63", "#f06292"]
+            },
+            { 
+                hz: 963, 
+                name: "Raise Consciousness", 
+                desc: "Connects to divine consciousness, light, and spirit. Enables direct experience of the divine.",
+                colors: ["#ffffff", "#e0e0e0"]
+            }
+        ];
+
+        // Audio Context
+        let audioContext = null;
+        let activeOscillators = {};
+        let activeGainNodes = {};
+        let timerInterval = null;
+        let timerEndTime = null;
+        let visualizers = {};
+
+        // Initialize Audio Context on first user interaction
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        // Generate frequency cards
+        function generateCards() {
+            const grid = document.getElementById('frequenciesGrid');
+            
+            solfeggioFrequencies.forEach((freq, index) => {
+                const card = document.createElement('div');
+                card.className = 'freq-card';
+                card.id = `card-${index}`;
+                card.style.setProperty('--color-1', freq.colors[0]);
+                card.style.setProperty('--color-2', freq.colors[1]);
+                card.style.setProperty('--glow-color', `${freq.colors[0]}40`);
+                
+                card.innerHTML = `
+                    <div class="freq-number">${freq.hz}</div>
+                    <div class="freq-hz">Hz</div>
+                    <div class="freq-name">${freq.name}</div>
+                    <div class="freq-description">${freq.desc}</div>
+                    <button class="play-btn" id="btn-${index}" onclick="toggleFrequency(${index})">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                        <span>Play</span>
+                    </button>
+                    <div class="visualizer">
+                        <canvas id="viz-${index}"></canvas>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Toggle frequency on/off
+        function toggleFrequency(index) {
+            initAudioContext();
+            
+            if (activeOscillators[index]) {
+                stopFrequency(index);
+            } else {
+                playFrequency(index);
+            }
+        }
+
+        // Play a frequency
+        function playFrequency(index) {
+            const freq = solfeggioFrequencies[index];
+            const carrierBase = parseInt(document.getElementById('carrierFreq').value);
+            const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
+            
+            // Binaural beat calculation
+            // Left ear: carrier frequency
+            // Right ear: carrier + solfeggio frequency
+            // Brain perceives the difference (solfeggio frequency)
+            const leftFreq = carrierBase;
+            const rightFreq = carrierBase + freq.hz;
+            
+            // Create stereo merger
+            const merger = audioContext.createChannelMerger(2);
+            
+            // Left oscillator
+            const oscLeft = audioContext.createOscillator();
+            oscLeft.type = 'sine';
+            oscLeft.frequency.value = leftFreq;
+            
+            // Right oscillator  
+            const oscRight = audioContext.createOscillator();
+            oscRight.type = 'sine';
+            oscRight.frequency.value = rightFreq;
+            
+            // Gain nodes for volume control
+            const gainLeft = audioContext.createGain();
+            const gainRight = audioContext.createGain();
+            const masterGain = audioContext.createGain();
+            
+            // Soft limiter to prevent clipping
+            const compressor = audioContext.createDynamicsCompressor();
+            compressor.threshold.value = -15;
+            compressor.knee.value = 10;
+            compressor.ratio.value = 12;
+            compressor.attack.value = 0.003;
+            compressor.release.value = 0.1;
+            
+            // Set initial volumes (fade in)
+            const volume = masterVol * 0.25; // Safety cap at 25%
+            gainLeft.gain.value = 0;
+            gainRight.gain.value = 0;
+            masterGain.gain.value = volume;
+            
+            // Smooth fade in (prevent clicks)
+            const fadeIn = audioContext.currentTime + 0.1;
+            gainLeft.gain.linearRampToValueAtTime(0.5, fadeIn + 1);
+            gainRight.gain.linearRampToValueAtTime(0.5, fadeIn + 1);
+            
+            // Connect graph
+            oscLeft.connect(gainLeft);
+            oscRight.connect(gainRight);
+            gainLeft.connect(merger, 0, 0);
+            gainRight.connect(merger, 0, 1);
+            merger.connect(masterGain);
+            masterGain.connect(compressor);
+            compressor.connect(audioContext.destination);
+            
+            // Start oscillators
+            oscLeft.start();
+            oscRight.start();
+            
+            // Store references
+            activeOscillators[index] = { left: oscLeft, right: oscRight, merger, compressor };
+            activeGainNodes[index] = { left: gainLeft, right: gainRight, master: masterGain };
+            
+            // Update UI
+            updateCardUI(index, true);
+            
+            // Start visualizer
+            startVisualizer(index);
+            
+            // Start timer if set
+            const timerMinutes = parseInt(document.getElementById('timer').value);
+            if (timerMinutes > 0 && !timerInterval) {
+                startTimer(timerMinutes);
+            }
+        }
+
+        // Stop a frequency
+        function stopFrequency(index) {
+            if (!activeOscillators[index]) return;
+            
+            const gains = activeGainNodes[index];
+            const oscs = activeOscillators[index];
+            
+            // Smooth fade out
+            const fadeOut = audioContext.currentTime + 0.05;
+            gains.left.gain.linearRampToValueAtTime(0, fadeOut + 0.5);
+            gains.right.gain.linearRampToValueAtTime(0, fadeOut + 0.5);
+            
+            // Stop after fade
+            setTimeout(() => {
+                oscs.left.stop();
+                oscs.right.stop();
+                oscs.left.disconnect();
+                oscs.right.disconnect();
+                oscs.merger.disconnect();
+                oscs.compressor.disconnect();
+            }, 600);
+            
+            delete activeOscillators[index];
+            delete activeGainNodes[index];
+            
+            // Update UI
+            updateCardUI(index, false);
+            stopVisualizer(index);
+        }
+
+        // Stop all frequencies
+        function stopAll() {
+            Object.keys(activeOscillators).forEach(index => {
+                stopFrequency(parseInt(index));
+            });
+            stopTimer();
+        }
+
+        // Fade master volume
+        function fadeMasterVolume(targetVolume) {
+            Object.values(activeGainNodes).forEach(gains => {
+                gains.master.gain.linearRampToValueAtTime(
+                    targetVolume, 
+                    audioContext.currentTime + 2
+                );
+            });
+            
+            setTimeout(() => {
+                if (targetVolume === 0) {
+                    stopAll();
+                    document.getElementById('masterVolume').value = 20;
+                    document.getElementById('volumeValue').textContent = '20%';
+                }
+            }, 2500);
+        }
+
+        // Update card UI
+        function updateCardUI(index, isPlaying) {
+            const card = document.getElementById(`card-${index}`);
+            const btn = document.getElementById(`btn-${index}`);
+            
+            if (isPlaying) {
+                card.classList.add('active');
+                btn.classList.add('playing');
+                btn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                    <span>Stop</span>
+                `;
+            } else {
+                card.classList.remove('active');
+                btn.classList.remove('playing');
+                btn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    <span>Play</span>
+                `;
+            }
+        }
+
+        // Start visualizer
+        function startVisualizer(index) {
+            const canvas = document.getElementById(`viz-${index}`);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            const freq = solfeggioFrequencies[index];
+            let animationId;
+            
+            function draw() {
+                if (!activeOscillators[index]) return;
+                
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const barCount = 32;
+                const barWidth = canvas.width / barCount;
+                const time = Date.now() / 1000;
+                
+                for (let i = 0; i < barCount; i++) {
+                    // Create wave pattern based on frequency
+                    const wave = Math.sin(time * freq.hz / 50 + i * 0.5) * 0.5 + 0.5;
+                    const height = wave * canvas.height * 0.8 + Math.random() * 5;
+                    
+                    const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - height);
+                    gradient.addColorStop(0, freq.colors[0]);
+                    gradient.addColorStop(1, freq.colors[1]);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(
+                        i * barWidth + 1, 
+                        canvas.height - height, 
+                        barWidth - 2, 
+                        height
+                    );
+                }
+                
+                animationId = requestAnimationFrame(draw);
+            }
+            
+            visualizers[index] = { animationId, draw };
+            draw();
+        }
+
+        // Stop visualizer
+        function stopVisualizer(index) {
+            if (visualizers[index]) {
+                cancelAnimationFrame(visualizers[index].animationId);
+                delete visualizers[index];
+            }
+        }
+
+        // Timer functions
+        function startTimer(minutes) {
+            timerEndTime = Date.now() + (minutes * 60 * 1000);
+            document.getElementById('timerDisplay').style.display = 'block';
+            
+            timerInterval = setInterval(() => {
+                const remaining = timerEndTime - Date.now();
+                
+                if (remaining <= 0) {
+                    stopTimer();
+                    fadeMasterVolume(0);
+                    return;
+                }
+                
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('timerDisplay').textContent = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            timerEndTime = null;
+            document.getElementById('timerDisplay').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('masterVolume').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('volumeValue').textContent = value + '%';
+            
+            Object.values(activeGainNodes).forEach(gains => {
+                if (gains.master) {
+                    gains.master.gain.value = (value / 100) * 0.25;
+                }
+            });
+        });
+
+        document.getElementById('carrierFreq').addEventListener('input', (e) => {
+            document.getElementById('carrierValue').textContent = e.target.value;
+        });
+
+        // Initialize
+        generateCards();
+
+        // Handle page visibility (pause when tab hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && audioContext) {
+                audioContext.suspend();
+            } else if (audioContext) {
+                audioContext.resume();
+            }
+        });
+    </script>
+</body>
+</html>
