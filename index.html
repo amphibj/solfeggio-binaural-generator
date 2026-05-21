@@ -417,6 +417,8 @@
                 </select>
                 <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:100px">▶️ Play</button>
             </div>
+            <button class="global-btn" onclick="testAudio()" style="margin-top:10px;background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.5)">🔊 Test Audio (Click First)</button>
+            <p id="audioStatus" style="color:#888;margin-top:10px;font-size:0.85em"></p>
         </div>
 
         <div class="controls">
@@ -994,6 +996,44 @@
                 pureToneOsc.start();
                 btn.innerHTML = '⏹️ Stop Tone';
                 btn.style.background = 'rgba(231, 76, 60, 0.3)';
+            }
+        }
+
+        // Audio test function - simplest possible beep
+        function testAudio() {
+            const status = document.getElementById('audioStatus');
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create oscillator and gain
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.value = 440; // A4 note
+                
+                // Set volume to 50%
+                gain.gain.value = 0.5;
+                
+                // Connect
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                // Play for 1 second
+                osc.start();
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1);
+                osc.stop(ctx.currentTime + 1);
+                
+                status.textContent = '✅ Audio test: Playing 440Hz beep for 1 second...';
+                status.style.color = '#2ecc71';
+                
+                setTimeout(() => {
+                    status.textContent = 'Audio test complete. If you heard a beep, your browser supports Web Audio.';
+                }, 1500);
+                
+            } catch (err) {
+                status.textContent = '❌ Audio test failed: ' + err.message;
+                status.style.color = '#e74c3c';
             }
         }
 
