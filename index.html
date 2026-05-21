@@ -1001,8 +1001,11 @@
             
             function playTone() {
                 const freq = parseInt(freqInput.value) || 528;
-                const waveform = document.getElementById('pureToneWaveform').value || 'sine';
+                const waveformSelect = document.getElementById('pureToneWaveform');
+                const waveform = waveformSelect ? waveformSelect.value : 'sine';
                 const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
+                
+                console.log('Selected waveform:', waveform);
                 
                 pureToneOsc = audioContext.createOscillator();
                 pureToneOsc.type = waveform;
@@ -1107,13 +1110,11 @@
         // Initialize
         generateCards();
 
-        // Handle page visibility (pause when tab hidden)
+        // Handle page visibility - DON'T suspend, keep playing in background
+        // This allows audio to continue when switching tabs or minimizing
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && audioContext) {
-                audioContext.suspend();
-            } else if (audioContext) {
-                audioContext.resume();
-            }
+            // Audio continues playing - no action needed
+            // This is intentional so users can listen while doing other things
         });
     </script>
 </body>
