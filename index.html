@@ -342,15 +342,15 @@
             <div class="control-group">
                 <label>Master Volume</label>
                 <div class="slider-container">
-                    <input type="range" id="masterVolume" min="0" max="50" value="20">
-                    <span class="value-display" id="volumeValue">20%</span>
+                    <input type="range" id="masterVolume" min="0" max="100" value="50">
+                    <span class="value-display" id="volumeValue">50%</span>
                 </div>
             </div>
 
             <div class="control-group">
-                <label>Carrier Frequency Base (Hz)</label>
+                <label>Carrier Frequency Base (Hz) <span style="color:#888;font-size:0.85em">- Higher frequencies carry better but 200-600Hz is standard</span></label>
                 <div class="slider-container">
-                    <input type="range" id="carrierFreq" min="100" max="800" value="432">
+                    <input type="range" id="carrierFreq" min="100" max="2000" value="432">
                     <span class="value-display" id="carrierValue">432</span>
                 </div>
             </div>
@@ -585,16 +585,16 @@
             compressor.attack.value = 0.003;
             compressor.release.value = 0.1;
             
-            // Set initial volumes (fade in) - INCREASED for audibility
-            const volume = masterVol * 0.8; // Increased cap to 80%
+            // Set initial volumes (fade in) - HIGHER volume
+            const volume = masterVol; // No cap - use full slider value
             gainLeft.gain.value = 0;
             gainRight.gain.value = 0;
             masterGain.gain.value = volume;
             
-            // Smooth fade in (prevent clicks) - INCREASED target
+            // Smooth fade in (prevent clicks) - HIGHER target
             const fadeIn = audioContext.currentTime + 0.1;
-            gainLeft.gain.linearRampToValueAtTime(0.8, fadeIn + 1); // Increased from 0.5
-            gainRight.gain.linearRampToValueAtTime(0.8, fadeIn + 1); // Increased from 0.5
+            gainLeft.gain.linearRampToValueAtTime(1.0, fadeIn + 1); // Full volume
+            gainRight.gain.linearRampToValueAtTime(1.0, fadeIn + 1); // Full volume
             
             // Connect graph
             oscLeft.connect(gainLeft);
@@ -800,7 +800,7 @@
             
             Object.values(activeGainNodes).forEach(gains => {
                 if (gains.master) {
-                    gains.master.gain.value = (value / 100) * 0.8; // Increased from 0.25
+                    gains.master.gain.value = value / 100; // Full volume
                 }
             });
         });
