@@ -397,10 +397,10 @@
             </div>
 
             <div class="control-group">
-                <label>Carrier Frequency Base (Hz) <span style="color:#888;font-size:0.85em">- Higher frequencies carry better but 200-600Hz is standard</span></label>
-                <div class="slider-container">
-                    <input type="range" id="carrierFreq" min="100" max="2000" value="432">
-                    <span class="value-display" id="carrierValue">432</span>
+                <label>Custom Frequency (Hz) - Optional</label>
+                <div style="display:flex;gap:10px">
+                    <input type="number" id="customFreq" placeholder="Enter Hz (e.g., 111)" min="1" max="2000" style="flex:1;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
+                    <button class="global-btn" onclick="playCustomFrequency()" style="flex:0 0 auto;min-width:100px">Play Custom</button>
                 </div>
             </div>
 
@@ -434,23 +434,23 @@
             <p style="color:#aaa;margin-bottom:15px">Your brain creates a "phantom" beat when it receives slightly different frequencies in each ear. This is called the <strong>binaural beat</strong> — the difference between the two tones.</p>
             
             <div class="freq-formula">
-                Left Ear: 432 Hz<br>
-                Right Ear: 432 + 528 = 960 Hz<br>
-                → Brain Perceives: 528 Hz (DNA Repair)
+                Left Ear: 440 Hz<br>
+                Right Ear: 440 + Solfeggio = Different in each<br>
+                → Brain Perceives: The Solfeggio Frequency
             </div>
             
             <div class="how-it-works-grid">
                 <div class="how-it-card">
-                    <h4>🎵 Carrier Frequency</h4>
-                    <p>The base tone you hear (100-2000Hz). Higher carriers (>800Hz) make the binaural effect more noticeable. Lower carriers (<400Hz) are more relaxing. Sweet spot: 200-600Hz.</p>
+                    <h4>🎵 How It Works</h4>
+                    <p>Left ear hears 440Hz, right ear hears 440Hz + Solfeggio frequency. Your brain perceives the <strong>difference</strong> — that's the therapeutic frequency.</p>
                 </div>
                 <div class="how-it-card">
                     <h4>🧠 Solfeggio Effect</h4>
                     <p>The frequency your brain perceives from the difference. These sacred frequencies (174-963Hz) are believed to have specific healing properties.</p>
                 </div>
                 <div class="how-it-card">
-                    <h4>💡 Why No Sound?</h4>
-                    <p>Binaural beats are <strong>subtle</strong>. Try: 1) Headphones required 2) Volume at 50-70% 3) Carrier 400-800Hz 4) Quiet room. The effect is in your brain, not the speakers.</p>
+                    <h4>💡 Custom Frequency</h4>
+                    <p>Use the custom input to play any frequency 1-2000Hz. Enter a value and click "Play Custom".</p>
                 </div>
             </div>
         </div>
@@ -650,7 +650,7 @@
         // Play a frequency
         function playFrequency(index) {
             const freq = solfeggioFrequencies[index];
-            const carrierBase = parseInt(document.getElementById('carrierFreq').value);
+            const carrierBase = 440; // Fixed carrier frequency (A4)
             const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
             
             // Binaural beat calculation
@@ -852,6 +852,55 @@
         }
 
         // Timer functions
+        
+        // Play custom frequency
+        function playCustomFrequency() {
+            const customHz = parseInt(document.getElementById('customFreq').value);
+            if (!customHz || customHz < 1 || customHz > 2000) {
+                alert('Please enter a valid frequency between 1-2000 Hz');
+                return;
+            }
+            
+            initAudioContext();
+            
+            // Stop any playing frequencies
+            Object.keys(activeOscillators).forEach(key => {
+                stopFrequency(parseInt(key));
+            });
+            
+            const carrierBase = 440;
+            const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
+            const volume = Math.max(0.3, masterVol);
+            
+            const oscLeft = audioContext.createOscillator();
+            oscLeft.type = 'sine';
+            oscLeft.frequency.value = carrierBase;
+            
+            const oscRight = audioContext.createOscillator();
+            oscRight.type = 'sine';
+            oscRight.frequency.value = carrierBase + customHz;
+            
+            const gainLeft = audioContext.createGain();
+            const gainRight = audioContext.createGain();
+            
+            gainLeft.gain.value = volume;
+            gainRight.gain.value = volume;
+            
+            oscLeft.connect(gainLeft);
+            oscRight.connect(gainRight);
+            gainLeft.connect(audioContext.destination);
+            gainRight.connect(audioContext.destination);
+            
+            oscLeft.start();
+            oscRight.start();
+            
+            // Store with special index 'custom'
+            activeOscillators['custom'] = { left: oscLeft, right: oscRight };
+            activeGainNodes['custom'] = { left: gainLeft, right: gainRight };
+            
+            console.log('Playing custom frequency:', customHz, 'Hz');
+        }
+
         function startTimer(minutes) {
             timerEndTime = Date.now() + (minutes * 60 * 1000);
             document.getElementById('timerDisplay').style.display = 'block';
@@ -891,10 +940,6 @@
                 if (gains.left) gains.left.gain.value = vol;
                 if (gains.right) gains.right.gain.value = vol;
             });
-        });
-
-        document.getElementById('carrierFreq').addEventListener('input', (e) => {
-            document.getElementById('carrierValue').textContent = e.target.value;
         });
 
         // Initialize
