@@ -430,6 +430,11 @@
 
             <div class="timer-display" id="timerDisplay" style="display: none;">00:00</div>
 
+            <div class="playing-status" id="playingStatus" style="margin:15px 0;padding:10px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:8px;display:none">
+                <p style="color:#2ecc71;margin:0;font-size:0.9em;font-weight:bold">▶️ Now Playing</p>
+                <p id="playingDetails" style="color:#888;margin:5px 0 0 0;font-size:0.85em"></p>
+            </div>
+
             <div class="global-controls">
                 <button class="global-btn" onclick="stopAll()">⏹️ Stop All</button>
                 <button class="global-btn" onclick="fadeMasterVolume(0)">🔉 Fade Out</button>
@@ -699,6 +704,18 @@
             oscRight.start();
             console.log('Started oscillators:', leftFreq, 'Hz left,', rightFreq, 'Hz right, volume:', volume);
             
+            // Show verification status
+            const playingStatus = document.getElementById('playingStatus');
+            const playingDetails = document.getElementById('playingDetails');
+            if (playingStatus && playingDetails) {
+                playingStatus.style.display = 'block';
+                playingDetails.innerHTML = `
+                    <strong>${freq.hz} Hz ${freq.name}</strong><br>
+                    Left ear: ${leftFreq} Hz | Right ear: ${rightFreq} Hz<br>
+                    Binaural beat: ${freq.hz} Hz (${rightFreq} - ${leftFreq})
+                `;
+            }
+            
             // Store references
             activeOscillators[index] = { left: oscLeft, right: oscRight };
             activeGainNodes[index] = { left: gainLeft, right: gainRight, master: masterGain };
@@ -743,6 +760,12 @@
             delete activeOscillators[index];
             delete activeGainNodes[index];
             
+            // Hide playing status if no frequencies playing
+            if (Object.keys(activeOscillators).length === 0) {
+                const playingStatus = document.getElementById('playingStatus');
+                if (playingStatus) playingStatus.style.display = 'none';
+            }
+            
             // Update UI
             updateCardUI(index, false);
             stopVisualizer(index);
@@ -754,6 +777,9 @@
                 stopFrequency(parseInt(index));
             });
             stopTimer();
+            // Hide playing status
+            const playingStatus = document.getElementById('playingStatus');
+            if (playingStatus) playingStatus.style.display = 'none';
         }
 
         // Fade master volume
