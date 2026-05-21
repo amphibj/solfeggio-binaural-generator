@@ -408,13 +408,7 @@
             <h3 style="margin:0 0 10px 0;color:#e0e0e0">🎵 Pure Tone Generator</h3>
             <p style="color:#888;margin:0 0 15px 0;font-size:0.9em">Single-tone generator. Both ears hear the same frequency.</p>
             
-            <div id="audioEnableSection" style="margin-bottom:15px;padding:15px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;text-align:center">
-                <p style="color:#e74c3c;margin:0 0 10px 0;font-weight:bold">⚠️ Audio Requires Click First</p>
-                <p style="color:#888;margin:0 0 10px 0;font-size:0.85em">Browsers block audio until you interact with the page.</p>
-                <button class="global-btn" onclick="enableAudio()" style="background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.5);font-size:1.1em;padding:15px 30px">🔊 Enable Audio</button>
-            </div>
-            
-            <div id="toneControls" style="display:none">
+            <div id="toneControls">
                 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:80px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
                     <select id="pureToneWaveform" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
@@ -976,6 +970,7 @@
         function togglePureTone() {
             const btn = document.getElementById('pureToneBtn');
             const freqInput = document.getElementById('pureToneFreq');
+            const status = document.getElementById('audioStatus');
             
             if (pureToneOsc) {
                 // Stop
@@ -984,11 +979,27 @@
                 pureToneGain.disconnect();
                 pureToneOsc = null;
                 pureToneGain = null;
-                btn.innerHTML = '▶️ Play Tone';
-                btn.style.background = 'rgba(255,255,255,0.05)';
+                btn.innerHTML = '▶️ Play';
+                btn.style.background = '';
+                return;
+            }
+            
+            // Initialize audio context
+            initAudioContext();
+            
+            // Handle suspended state (browser autoplay policy)
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    playTone();
+                }).catch(err => {
+                    status.textContent = 'Error: ' + err.message;
+                    status.style.color = '#e74c3c';
+                });
             } else {
-                // Play
-                initAudioContext();
+                playTone();
+            }
+            
+            function playTone() {
                 const freq = parseInt(freqInput.value) || 528;
                 const waveform = document.getElementById('pureToneWaveform').value || 'sine';
                 const masterVol = parseInt(document.getElementById('masterVolume').value) / 100;
@@ -998,14 +1009,16 @@
                 pureToneOsc.frequency.value = freq;
                 
                 pureToneGain = audioContext.createGain();
-                pureToneGain.gain.value = Math.max(0.3, masterVol);
+                pureToneGain.gain.value = Math.max(0.5, masterVol);
                 
                 pureToneOsc.connect(pureToneGain);
                 pureToneGain.connect(audioContext.destination);
                 
                 pureToneOsc.start();
-                btn.innerHTML = '⏹️ Stop Tone';
+                btn.innerHTML = '⏹️ Stop';
                 btn.style.background = 'rgba(231, 76, 60, 0.3)';
+                status.textContent = 'Playing ' + freq + 'Hz ' + waveform + ' wave';
+                status.style.color = '#2ecc71';
             }
         }
 
