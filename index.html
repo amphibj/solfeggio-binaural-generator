@@ -628,9 +628,15 @@
             
             // Small delay to ensure AudioContext is ready
             setTimeout(() => {
+                // If clicking the same playing frequency, stop it
                 if (activeOscillators[index]) {
                     stopFrequency(index);
                 } else {
+                    // Stop any other playing frequencies first (only one at a time)
+                    Object.keys(activeOscillators).forEach(key => {
+                        stopFrequency(parseInt(key));
+                    });
+                    // Now play the new one
                     playFrequency(index);
                 }
             }, 50);
