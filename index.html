@@ -623,20 +623,25 @@
 
         // Toggle frequency on/off
         function toggleFrequency(index) {
+            console.log('Toggle called for index:', index);
             const initialized = initAudioContext();
+            console.log('AudioContext initialized:', initialized, 'State:', audioContext ? audioContext.state : 'null');
             if (!initialized) return;
             
             // Small delay to ensure AudioContext is ready
             setTimeout(() => {
                 // If clicking the same playing frequency, stop it
                 if (activeOscillators[index]) {
+                    console.log('Stopping frequency', index);
                     stopFrequency(index);
                 } else {
                     // Stop any other playing frequencies first (only one at a time)
+                    console.log('Stopping other frequencies, count:', Object.keys(activeOscillators).length);
                     Object.keys(activeOscillators).forEach(key => {
                         stopFrequency(parseInt(key));
                     });
                     // Now play the new one
+                    console.log('Playing frequency', index);
                     playFrequency(index);
                 }
             }, 50);
@@ -688,6 +693,7 @@
             // Start oscillators
             oscLeft.start();
             oscRight.start();
+            console.log('Started oscillators:', leftFreq, 'Hz left,', rightFreq, 'Hz right, volume:', volume);
             
             // Store references
             activeOscillators[index] = { left: oscLeft, right: oscRight };
