@@ -571,11 +571,23 @@
         // Initialize Audio Context on first user interaction
         function initAudioContext() {
             if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('AudioContext created:', audioContext.state);
+                } catch (e) {
+                    console.error('Failed to create AudioContext:', e);
+                    alert('Audio not supported on this browser');
+                    return false;
+                }
             }
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                audioContext.resume().then(() => {
+                    console.log('AudioContext resumed');
+                }).catch(e => {
+                    console.error('Failed to resume AudioContext:', e);
+                });
             }
+            return true;
         }
 
         // Generate frequency cards
@@ -612,13 +624,17 @@
 
         // Toggle frequency on/off
         function toggleFrequency(index) {
-            initAudioContext();
+            const initialized = initAudioContext();
+            if (!initialized) return;
             
-            if (activeOscillators[index]) {
-                stopFrequency(index);
-            } else {
-                playFrequency(index);
-            }
+            // Small delay to ensure AudioContext is ready
+            setTimeout(() => {
+                if (activeOscillators[index]) {
+                    stopFrequency(index);
+                } else {
+                    playFrequency(index);
+                }
+            }, 50);
         }
 
         // Play a frequency
@@ -647,45 +663,29 @@
             oscRight.type = 'sine';
             oscRight.frequency.value = rightFreq;
             
-            // Gain nodes for volume control
+            // Gain nodes for volume control - START WITH AUDIBLE VOLUME
             const gainLeft = audioContext.createGain();
             const gainRight = audioContext.createGain();
             const masterGain = audioContext.createGain();
             
-            // Soft limiter to prevent clipping
-            const compressor = audioContext.createDynamicsCompressor();
-            compressor.threshold.value = -15;
-            compressor.knee.value = 10;
-            compressor.ratio.value = 12;
-            compressor.attack.value = 0.003;
-            compressor.release.value = 0.1;
+            // Set volumes - START HIGH
+            const volume = Math.max(0.3, masterVol); // Minimum 30% volume
+            gainLeft.gain.value = volume;
+            gainRight.gain.value = volume;
+            masterGain.gain.value = 1.0;
             
-            // Set initial volumes (fade in) - HIGHER volume
-            const volume = masterVol; // No cap - use full slider value
-            gainLeft.gain.value = 0;
-            gainRight.gain.value = 0;
-            masterGain.gain.value = volume;
-            
-            // Smooth fade in (prevent clicks) - HIGHER target
-            const fadeIn = audioContext.currentTime + 0.1;
-            gainLeft.gain.linearRampToValueAtTime(1.0, fadeIn + 1); // Full volume
-            gainRight.gain.linearRampToValueAtTime(1.0, fadeIn + 1); // Full volume
-            
-            // Connect graph
+            // Connect graph (SIMPLIFIED - no compressor for now)
             oscLeft.connect(gainLeft);
             oscRight.connect(gainRight);
-            gainLeft.connect(merger, 0, 0);
-            gainRight.connect(merger, 0, 1);
-            merger.connect(masterGain);
-            masterGain.connect(compressor);
-            compressor.connect(audioContext.destination);
+            gainLeft.connect(audioContext.destination);
+            gainRight.connect(audioContext.destination);
             
             // Start oscillators
             oscLeft.start();
             oscRight.start();
             
             // Store references
-            activeOscillators[index] = { left: oscLeft, right: oscRight, merger, compressor };
+            activeOscillators[index] = { left: oscLeft, right: oscRight };
             activeGainNodes[index] = { left: gainLeft, right: gainRight, master: masterGain };
             
             // Update UI
@@ -715,12 +715,14 @@
             
             // Stop after fade
             setTimeout(() => {
-                oscs.left.stop();
-                oscs.right.stop();
-                oscs.left.disconnect();
-                oscs.right.disconnect();
-                oscs.merger.disconnect();
-                oscs.compressor.disconnect();
+                try {
+                    oscs.left.stop();
+                    oscs.right.stop();
+                    oscs.left.disconnect();
+                    oscs.right.disconnect();
+                } catch (e) {
+                    // Already stopped
+                }
             }, 600);
             
             delete activeOscillators[index];
@@ -870,13 +872,13 @@
 
         // Event listeners
         document.getElementById('masterVolume').addEventListener('input', (e) => {
-            const value = e.target.value;
+            const value = parseInt(e.target.value);
             document.getElementById('volumeValue').textContent = value + '%';
             
+            const vol = Math.max(0.1, value / 100); // Minimum 10%
             Object.values(activeGainNodes).forEach(gains => {
-                if (gains.master) {
-                    gains.master.gain.value = value / 100; // Full volume
-                }
+                if (gains.left) gains.left.gain.value = vol;
+                if (gains.right) gains.right.gain.value = vol;
             });
         });
 
