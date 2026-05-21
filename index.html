@@ -412,6 +412,7 @@
         <div class="controls-info">
             <h3 style="color:#e0e0e0;margin-bottom:10px;font-size:1.1em">🧘 The Nine Sacred Frequencies</h3>
             <p style="color:#888">Ancient musical tones used for healing, transformation, and spiritual awakening. Each frequency resonates with different aspects of your being.</p>
+            <p style="color:#666;margin-top:10px;font-size:0.8em">💡 <strong>Tip:</strong> On mobile, audio may pause when switching apps. Keep this browser tab active or use Picture-in-Picture mode if available.</p>
         </div>
 
         <div class="controls">
@@ -1160,7 +1161,55 @@
         document.addEventListener('visibilitychange', () => {
             // Audio continues playing - no action needed
             // This is intentional so users can listen while doing other things
+            
+            // If becoming visible again and audio was suspended, try to resume
+            if (!document.hidden && audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
         });
+        
+        // Try to acquire wake lock to prevent screen sleep (keeps audio playing)
+        if ('wakeLock' in navigator) {
+            let wakeLock = null;
+            
+            const requestWakeLock = async () => {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock acquired');
+                } catch (err) {
+                    console.log('Wake Lock failed:', err);
+                }
+            };
+            
+            // Request wake lock when audio starts
+            document.addEventListener('click', () => {
+                if (Object.keys(activeOscillators).length > 0 || pureToneOsc) {
+                    requestWakeLock();
+                }
+            }, { once: false });
+            
+            // Re-acquire if lost (e.g., when switching back to tab)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && wakeLock === null) {
+                    requestWakeLock();
+                }
+            });
+        }
+        
+        // Keep audio alive with silent buffer (prevents browser from throttling)
+        function keepAudioAlive() {
+            if (audioContext && audioContext.state === 'running') {
+                // Create silent buffer to keep audio context active
+                const buffer = audioContext.createBuffer(1, 1, 22050);
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+            }
+        }
+        
+        // Ping audio context every 30 seconds to keep it alive
+        setInterval(keepAudioAlive, 30000);
     </script>
 </body>
 </html>
