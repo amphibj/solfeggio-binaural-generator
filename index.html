@@ -330,13 +330,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>🦝 Natasha's Solfeggio Binaural Generator</h1>
+            <h1>🦝 Solfeggio Binaural Generator</h1>
             <p>The Nine Sacred Solfeggio Frequencies with Pure Tone Binaural Technology</p>
         </header>
 
-        <div class="warning">
-            <strong>⚠️ Use Stereo Headphones Required</strong><br>
-            Binaural beats require separate frequencies in each ear. Start at low volume. Not for those with epilepsy or seizure disorders. Not medical advice.
+        <div class="controls-info">
+            <p><strong>Binaural beats</strong> work by playing slightly different frequencies in each ear. Your brain perceives the difference as a rhythmic pulse. The <strong>carrier frequency</strong> is the base tone you hear; the binaural beat creates the therapeutic effect.</p>
         </div>
 
         <div class="controls">
@@ -359,10 +358,10 @@
             <div class="control-group">
                 <label>Session Timer</label>
                 <select id="timer">
-                    <option value="0">No Timer</option>
+                    <option value="0" selected>Unlimited</option>
                     <option value="5">5 minutes</option>
                     <option value="10">10 minutes</option>
-                    <option value="15" selected>15 minutes</option>
+                    <option value="15">15 minutes</option>
                     <option value="20">20 minutes</option>
                     <option value="30">30 minutes</option>
                     <option value="60">60 minutes</option>
@@ -422,7 +421,7 @@
         </div>
 
         <footer>
-            <p>🦝 Built by Natasha | Based on scientific research on brainwave entrainment</p>
+            <p>🦝 Based on scientific research on brainwave entrainment</p>
             <p>Use headphones • Start low • Be safe</p>
         </footer>
     </div>
@@ -586,16 +585,16 @@
             compressor.attack.value = 0.003;
             compressor.release.value = 0.1;
             
-            // Set initial volumes (fade in)
-            const volume = masterVol * 0.25; // Safety cap at 25%
+            // Set initial volumes (fade in) - INCREASED for audibility
+            const volume = masterVol * 0.8; // Increased cap to 80%
             gainLeft.gain.value = 0;
             gainRight.gain.value = 0;
             masterGain.gain.value = volume;
             
-            // Smooth fade in (prevent clicks)
+            // Smooth fade in (prevent clicks) - INCREASED target
             const fadeIn = audioContext.currentTime + 0.1;
-            gainLeft.gain.linearRampToValueAtTime(0.5, fadeIn + 1);
-            gainRight.gain.linearRampToValueAtTime(0.5, fadeIn + 1);
+            gainLeft.gain.linearRampToValueAtTime(0.8, fadeIn + 1); // Increased from 0.5
+            gainRight.gain.linearRampToValueAtTime(0.8, fadeIn + 1); // Increased from 0.5
             
             // Connect graph
             oscLeft.connect(gainLeft);
@@ -801,7 +800,7 @@
             
             Object.values(activeGainNodes).forEach(gains => {
                 if (gains.master) {
-                    gains.master.gain.value = (value / 100) * 0.25;
+                    gains.master.gain.value = (value / 100) * 0.8; // Increased from 0.25
                 }
             });
         });
