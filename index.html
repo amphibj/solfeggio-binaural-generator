@@ -407,16 +407,26 @@
         <div class="pure-tone-section" style="margin:20px 0;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px">
             <h3 style="margin:0 0 10px 0;color:#e0e0e0">🎵 Pure Tone Generator</h3>
             <p style="color:#888;margin:0 0 15px 0;font-size:0.9em">Single-tone generator. Both ears hear the same frequency.</p>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-                <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:80px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
-                <select id="pureToneWaveform" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
-                    <option value="sine">Sine</option>
-                    <option value="square">Square</option>
-                    <option value="sawtooth">Sawtooth</option>
-                    <option value="triangle">Triangle</option>
-                </select>
-                <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:100px">▶️ Play</button>
+            
+            <div id="audioEnableSection" style="margin-bottom:15px;padding:15px;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;text-align:center">
+                <p style="color:#e74c3c;margin:0 0 10px 0;font-weight:bold">⚠️ Audio Requires Click First</p>
+                <p style="color:#888;margin:0 0 10px 0;font-size:0.85em">Browsers block audio until you interact with the page.</p>
+                <button class="global-btn" onclick="enableAudio()" style="background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.5);font-size:1.1em;padding:15px 30px">🔊 Enable Audio</button>
             </div>
+            
+            <div id="toneControls" style="display:none">
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <input type="number" id="pureToneFreq" placeholder="Hz" value="528" min="1" max="2000" style="width:80px;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0;text-align:center">
+                    <select id="pureToneWaveform" style="padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:#1a1a2e;color:#e0e0e0">
+                        <option value="sine">Sine</option>
+                        <option value="square">Square</option>
+                        <option value="sawtooth">Sawtooth</option>
+                        <option value="triangle">Triangle</option>
+                    </select>
+                    <button class="global-btn" id="pureToneBtn" onclick="togglePureTone()" style="flex:0 0 auto;min-width:100px">▶️ Play</button>
+                </div>
+            </div>
+            
             <button class="global-btn" onclick="testAudio()" style="margin-top:10px;background:rgba(46,204,113,0.3);border-color:rgba(46,204,113,0.5)">🔊 Test Audio (Click First)</button>
             <p id="audioStatus" style="color:#888;margin-top:10px;font-size:0.85em"></p>
         </div>
@@ -1005,6 +1015,11 @@
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 
+                // Resume if suspended (browser autoplay policy)
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                
                 // Create oscillator and gain
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -1033,6 +1048,33 @@
                 
             } catch (err) {
                 status.textContent = '❌ Audio test failed: ' + err.message;
+                status.style.color = '#e74c3c';
+            }
+        }
+        
+        // Enable audio on user interaction
+        function enableAudio() {
+            const status = document.getElementById('audioStatus');
+            try {
+                // Initialize audio context
+                initAudioContext();
+                
+                // Resume if suspended
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        document.getElementById('audioEnableSection').style.display = 'none';
+                        document.getElementById('toneControls').style.display = 'block';
+                        status.textContent = '✅ Audio enabled! You can now play tones.';
+                        status.style.color = '#2ecc71';
+                    });
+                } else {
+                    document.getElementById('audioEnableSection').style.display = 'none';
+                    document.getElementById('toneControls').style.display = 'block';
+                    status.textContent = '✅ Audio enabled! You can now play tones.';
+                    status.style.color = '#2ecc71';
+                }
+            } catch (err) {
+                status.textContent = '❌ Failed to enable audio: ' + err.message;
                 status.style.color = '#e74c3c';
             }
         }
